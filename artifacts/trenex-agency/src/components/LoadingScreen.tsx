@@ -11,8 +11,40 @@ type Phase = "loading" | "ready" | "entering";
 
 /* ─── Atmosphere particles ──────────────────────────────── */
 const ATMO_CHARS = ["0", "1", "0", "1", "F", "A", "0", "1", "B", "C", "7", "E"];
-const ATMO_COUNT = 64;
-const DUST_COUNT = 30;
+
+interface AnimationProfile {
+  atmoCount: number;
+  dustCount: number;
+  reducedMotion: boolean;
+  lowPower: boolean;
+}
+
+function getAnimationProfile(): AnimationProfile {
+  if (typeof window === "undefined") {
+    return { atmoCount: 24, dustCount: 12, reducedMotion: false, lowPower: true };
+  }
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const device = navigator as Navigator & {
+    deviceMemory?: number;
+    connection?: { saveData?: boolean; effectiveType?: string };
+  };
+  const connection = device.connection;
+  const lowPower =
+    window.innerWidth < 640 ||
+    navigator.hardwareConcurrency <= 4 ||
+    connection?.saveData === true ||
+    connection?.effectiveType === "slow-2g" ||
+    connection?.effectiveType === "2g" ||
+    (device.deviceMemory !== undefined && device.deviceMemory <= 4);
+
+  return {
+    atmoCount: reducedMotion ? 0 : lowPower ? 24 : 46,
+    dustCount: reducedMotion ? 0 : lowPower ? 12 : 22,
+    reducedMotion,
+    lowPower,
+  };
+}
 
 interface AtmoParticle {
   id: number;
@@ -55,7 +87,6 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
 
   const atmoRef  = useRef<HTMLDivElement>(null);
   const dustRef  = useRef<HTMLDivElement>(null);
-  const particleEls = useRef<(HTMLSpanElement | null)[]>([]);
 
   const lettersRef = useRef<(HTMLSpanElement | null)[]>([]);
   const buttonRef  = useRef<HTMLButtonElement>(null);
@@ -70,8 +101,9 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   /* ── static data ── */
+  const animationProfile = useMemo(getAnimationProfile, []);
   const atmoParticles = useMemo<AtmoParticle[]>(() =>
-    Array.from({ length: ATMO_COUNT }, (_, i) => ({
+    Array.from({ length: animationProfile.atmoCount }, (_, i) => ({
       id: i,
       char: ATMO_CHARS[Math.floor(Math.random() * ATMO_CHARS.length)],
       left: Math.random() * 100,
@@ -80,10 +112,10 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
       dur:   1.6 + Math.random() * 1.8,
       size:  Math.random() > 0.65 ? 11 : 9,
       alpha: 0.25 + Math.random() * 0.45,
-    })), []);
+    })), [animationProfile.atmoCount]);
 
   const dustParticles = useMemo<DustParticle[]>(() =>
-    Array.from({ length: DUST_COUNT }, (_, i) => ({
+    Array.from({ length: animationProfile.dustCount }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
       top:  10 + Math.random() * 85,
@@ -91,7 +123,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
       delay: Math.random() * 4,
       dur:   5 + Math.random() * 5,
       hue:   Math.floor(Math.random() * 30),
-    })), []);
+    })), [animationProfile.dustCount]);
 
   const nameLetters = useMemo(() => siteConfig.name.split(""), []);
 
@@ -101,7 +133,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
       /* initial hidden states */
       gsap.set(containerRef.current, { opacity: 0 });
       gsap.set(scanlinesRef.current, { opacity: 0 });
-      gsap.set(scanBeamRef.current,  { top: "-10%" });
+      gsap.set(scanBeamRef.current,  { y: "-10vh" });
 
       /* rings — GSAP controls rotationX + rotation + opacity + scale */
       gsap.set(ring1Ref.current, { opacity: 0, scale: 0.3, rotationX: 0,  rotation: 0 });
@@ -125,11 +157,31 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
       gsap.set(shockRef.current,   { opacity: 0, scale: 0, xPercent: -50, yPercent: -50 });
       gsap.set(overlayRef.current, { opacity: 0 });
 
+      if (animationProfile.reducedMotion) {
+        gsap.set([
+          containerRef.current,
+          scanlinesRef.current,
+          ring1Ref.current,
+          ring2Ref.current,
+          ring3Ref.current,
+          ring4Ref.current,
+          glowRef.current,
+          glowRingRef.current,
+          logoWrapRef.current,
+          atmoRef.current,
+          dustRef.current,
+          lettersRef.current.filter(Boolean),
+          buttonRef.current,
+        ], { opacity: 1, clearProps: "transform,filter" });
+        setPhase("ready");
+        return;
+      }
+
       /* ── continuous ring rotation (independent of timeline) ── */
-      gsap.to(ring1Ref.current, { rotation: 360,  duration: 11, ease: "none", repeat: -1 });
-      gsap.to(ring2Ref.current, { rotation: -360, duration: 17, ease: "none", repeat: -1 });
-      gsap.to(ring3Ref.current, { rotation: 360,  duration: 25, ease: "none", repeat: -1 });
-      gsap.to(ring4Ref.current, { rotation: -360, duration: 37, ease: "none", repeat: -1 });
+      gsap.to(ring1Ref.current, { rotation: 360,  duration: animationProfile.lowPower ? 18 : 11, ease: "none", repeat: -1 });
+      gsap.to(ring2Ref.current, { rotation: -360, duration: animationProfile.lowPower ? 26 : 17, ease: "none", repeat: -1 });
+      gsap.to(ring3Ref.current, { rotation: 360,  duration: animationProfile.lowPower ? 36 : 25, ease: "none", repeat: -1 });
+      gsap.to(ring4Ref.current, { rotation: -360, duration: animationProfile.lowPower ? 48 : 37, ease: "none", repeat: -1 });
 
       /* ── entrance timeline ── */
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -137,7 +189,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
       // Phase 1: environment
       tl.to(containerRef.current, { opacity: 1, duration: 0.45, ease: "power1.out" }, 0);
       tl.to(scanlinesRef.current, { opacity: 1, duration: 0.35 }, 0.1);
-      tl.to(scanBeamRef.current,  { top: "110%", duration: 1.4, ease: "power2.inOut" }, 0.1);
+      tl.to(scanBeamRef.current,  { y: "110vh", duration: 1.4, ease: "power2.inOut" }, 0.1);
 
       // Phase 2: rings cascade in (outermost first)
       tl.to(ring4Ref.current, { opacity: 1, scale: 1, duration: 0.75, ease: "power4.out" }, 0.2);
@@ -169,13 +221,17 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
     }, containerRef);
 
     return () => ctx.revert();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [animationProfile]);
 
   /* ─── ENTER CLICK TRANSITION ─────────────────────────── */
   const handleEnter = useCallback(() => {
     if (phase !== "ready") return;
     setPhase("entering");
+
+    if (animationProfile.reducedMotion) {
+      onEnter();
+      return;
+    }
 
     gsap.context(() => {
       const tl = gsap.timeline({ onComplete: onEnter });
@@ -183,57 +239,28 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
       // 1 — button dissolves immediately
       tl.to(buttonRef.current,  { opacity: 0, scale: 0.85, duration: 0.22, ease: "power2.in" }, 0);
 
-      // 2 — pulse rings burst from logo (3 concentric rings, staggered)
-      tl.fromTo(pulse1Ref.current, { opacity: 1, scale: 0.6 }, { opacity: 0, scale: 3.0, duration: 0.9, ease: "power2.out" }, 0.05);
-      tl.fromTo(pulse2Ref.current, { opacity: 0.8, scale: 0.4 }, { opacity: 0, scale: 3.8, duration: 1.1, ease: "power2.out" }, 0.14);
-      tl.fromTo(pulse3Ref.current, { opacity: 0.6, scale: 0.2 }, { opacity: 0, scale: 4.6, duration: 1.3, ease: "power2.out" }, 0.23);
+      // 2 — fade decorative layers as groups; avoid per-particle layout reads
+      tl.to([atmoRef.current, dustRef.current], { opacity: 0, duration: 0.24, ease: "power1.in" }, 0);
 
-      // 3 — shockwave radial blast
-      tl.fromTo(shockRef.current,
-        { opacity: 1, scale: 0 },
-        { opacity: 0, scale: 12, duration: 1.15, ease: "power3.out" }, 0.08);
+      // 3 — one restrained pulse keeps the transition tactile without a full-screen blur blast
+      tl.fromTo(pulse1Ref.current, { opacity: 0.9, scale: 0.65 }, { opacity: 0, scale: 2.4, duration: 0.62, ease: "power2.out" }, 0.04);
 
       // 4 — name letters implode
       tl.to(lettersRef.current.filter(Boolean), {
-        opacity: 0, y: -12, stagger: 0.018, duration: 0.38, ease: "power2.in",
-      }, 0.06);
+        opacity: 0, y: -8, stagger: 0.012, duration: 0.24, ease: "power2.in",
+      }, 0.04);
 
-      // 5 — scatter atmosphere particles outward from centre
-      particleEls.current.forEach((el) => {
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const cx = window.innerWidth  / 2;
-        const cy = window.innerHeight / 2;
-        const dx = rect.left + rect.width  / 2 - cx;
-        const dy = rect.top  + rect.height / 2 - cy;
-        const d  = Math.sqrt(dx * dx + dy * dy) || 80;
-        gsap.to(el, {
-          x: (dx / d) * (180 + Math.random() * 260),
-          y: (dy / d) * (180 + Math.random() * 260),
-          opacity: 0,
-          duration: 0.55 + Math.random() * 0.35,
-          ease: "power2.out",
-          delay: Math.random() * 0.18,
-        });
-      });
-
-      // 6 — rings blast outward
+      // 5 — rings and logo exit with compositor-friendly transforms
       tl.to([ring1Ref.current, ring2Ref.current, ring3Ref.current, ring4Ref.current], {
-        scale: 3.2, opacity: 0, duration: 0.75, ease: "power3.in", stagger: 0.04,
-      }, 0.08);
+        scale: 1.12, opacity: 0, duration: 0.42, ease: "power2.in", stagger: 0.025,
+      }, 0.04);
+      tl.to(logoWrapRef.current, { scale: 1.04, opacity: 0, duration: 0.38, ease: "power2.in" }, 0.1);
+      tl.to([glowRef.current, glowRingRef.current], { scale: 1.12, opacity: 0, duration: 0.32 }, 0.1);
 
-      // 7 — logo zooms toward camera + blurs out
-      tl.to(logoWrapRef.current, { scale: 2.8, opacity: 0, filter: "blur(10px)", duration: 0.78, ease: "power3.in" }, 0.16);
-      tl.to(glowRef.current,     { scale: 3.5, opacity: 0, duration: 0.65, ease: "power2.in" }, 0.18);
-      tl.to(glowRingRef.current, { scale: 2.5, opacity: 0, duration: 0.55 }, 0.2);
-
-      // 8 — whole container camera-push zoom
-      tl.to(containerRef.current, { scale: 1.48, duration: 0.95, ease: "power2.in" }, 0.12);
-
-      // 9 — final dark curtain closes
-      tl.to(overlayRef.current, { opacity: 1, duration: 0.42, ease: "power1.in" }, 0.72);
+      // 6 — a short curtain closes before the main site mounts on the next rAF
+      tl.to(overlayRef.current, { opacity: 1, duration: 0.24, ease: "power1.in" }, 0.26);
     }, containerRef);
-  }, [phase, onEnter]);
+  }, [animationProfile.reducedMotion, onEnter, phase]);
 
   /* ─── JSX ──────────────────────────────────────────────── */
   return (
@@ -261,7 +288,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
       <div ref={scanlinesRef} className="pointer-events-none absolute inset-0 opacity-0" style={{
         backgroundImage: "repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 4px)"
       }} />
-      <div ref={scanBeamRef} className="pointer-events-none absolute left-0 h-28 w-full" style={{
+      <div ref={scanBeamRef} className="loading-transform-layer pointer-events-none absolute left-0 top-0 h-28 w-full" style={{
         background: "linear-gradient(to bottom, transparent, rgba(255,31,31,0.1) 50%, transparent)"
       }} />
 
@@ -270,7 +297,6 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
         {atmoParticles.map((p) => (
           <span
             key={p.id}
-            ref={(el) => { particleEls.current[p.id] = el; }}
             className="absolute select-none font-mono"
             style={{
               left:   `${p.left}%`,
@@ -340,21 +366,21 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
           <div ref={glowRef} className="absolute" style={{
             width: 220, height: 220, borderRadius: "50%",
             background: "radial-gradient(circle, rgba(255,31,31,0.5), transparent 68%)",
-            filter: "blur(18px)",
+            filter: "blur(12px)",
           }} />
 
           {/* glowing border ring around logo */}
           <div ref={glowRingRef} className="pointer-events-none absolute" style={{
             width: 208, height: 208, borderRadius: "50%",
             border: "1px solid rgba(255,31,31,0.5)",
-            boxShadow: "0 0 28px rgba(255,31,31,0.22), 0 0 55px rgba(255,31,31,0.1) inset",
+            boxShadow: "0 0 18px rgba(255,31,31,0.2), 0 0 36px rgba(255,31,31,0.08) inset",
           }} />
 
           {/* pulse rings — hidden until click */}
           <div ref={pulse1Ref} className="pointer-events-none absolute" style={{
             width: 190, height: 190, borderRadius: "50%",
             border: "2px solid rgba(255,31,31,0.85)",
-            boxShadow: "0 0 22px rgba(255,31,31,0.5)",
+            boxShadow: "0 0 14px rgba(255,31,31,0.38)",
           }} />
           <div ref={pulse2Ref} className="pointer-events-none absolute" style={{
             width: 190, height: 190, borderRadius: "50%",

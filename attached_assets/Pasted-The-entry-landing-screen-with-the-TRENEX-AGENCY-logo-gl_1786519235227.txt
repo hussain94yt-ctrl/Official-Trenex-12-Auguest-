@@ -1,0 +1,29 @@
+The entry/landing screen (with the "TRENEX AGENCY" logo, glowing red circles, animated particle/number background, and "ENTER TRENEX" button) is laggy and not smooth on low-end devices, especially when clicking "Enter Trenex" to transition into the main site.
+
+Please diagnose and fix the following:
+
+1. IDENTIFY PERFORMANCE BOTTLENECKS:
+   - Check if the animated background (floating numbers/letters, particle effects) is using too many DOM elements or unoptimized animations (e.g., animating with JS instead of CSS transforms, or animating properties like "top/left" instead of "transform").
+   - Check if the glowing circle effects use heavy CSS box-shadow/blur/filter properties, which are expensive to render, especially multiple layered glows.
+   - Check the click transition (Enter Trenex → main site) for what's causing the "hang" — likely a heavy re-render, unoptimized page transition animation, or all main-site assets/components loading synchronously at the moment of transition.
+
+2. OPTIMIZE THE BACKGROUND ANIMATION:
+   - Reduce the number of animated particles/numbers on screen, especially on mobile/low-end devices (detect device capability or screen size and reduce particle count accordingly).
+   - Convert any JS-based position animations to CSS transforms (translate/scale) and use `will-change: transform` for GPU acceleration.
+   - Use `requestAnimationFrame` instead of `setInterval`/`setTimeout` for any custom JS animations.
+   - Consider using CSS `contain` or `transform: translateZ(0)` to isolate animated layers from triggering full page repaints.
+
+3. OPTIMIZE THE GLOW/BLUR EFFECTS:
+   - Reduce blur radius or number of layered glow effects if they're causing frame drops.
+   - Consider pre-rendering the glow as a static image/gradient instead of live CSS blur filters if performance is still poor.
+
+4. FIX THE ENTER TRENEX TRANSITION:
+   - Make sure clicking "Enter Trenex" triggers a lightweight CSS transition/fade (opacity + transform), not a heavy re-mount of the entire page.
+   - Ensure any main-site assets (images, fonts, components) are preloaded or lazy-loaded properly so the transition doesn't freeze while waiting for resources.
+   - Add a loading state or skeleton if there's unavoidable load time, so it doesn't feel "stuck" or "hung" to the user.
+
+5. ADD RESPONSIVE PERFORMANCE HANDLING:
+   - Detect low-end devices or reduced-motion preference (`prefers-reduced-motion` media query) and automatically simplify/reduce animations for those users.
+   - Test and ensure the entry screen and transition feel smooth on both high-end and low-end/mobile devices.
+
+After implementing these fixes, please explain what was causing the lag and what specifically was changed, so I understand the fix.

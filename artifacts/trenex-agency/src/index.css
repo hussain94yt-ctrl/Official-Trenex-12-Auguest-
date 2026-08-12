@@ -353,6 +353,20 @@ html.custom-cursor-active * {
   100% { transform: translateY(-28px) scale(0.85); opacity: 0.08; }
 }
 
+/* Keep the entry screen's animated layers isolated from the rest of the page.
+   This prevents particle and scan updates from invalidating the full layout. */
+.loading-transform-layer {
+  contain: layout paint;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-transform-layer {
+    animation: none !important;
+  }
+}
+
 @keyframes load-btn-scan {
   0%   { transform: translateX(-110%); }
   100% { transform: translateX(110%); }
