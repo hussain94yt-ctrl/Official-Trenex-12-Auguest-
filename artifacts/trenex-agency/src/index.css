@@ -353,6 +353,68 @@ html.custom-cursor-active * {
   100% { transform: translateY(-28px) scale(0.85); opacity: 0.08; }
 }
 
+@keyframes load-entry-logo {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes load-entry-name {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes load-entry-button {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes load-glow-entrance {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 0.9; transform: scale(1); }
+}
+
+@keyframes load-logo-breathe {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.03); }
+}
+
+.loading-entry-logo,
+.loading-entry-name,
+.loading-entry-button,
+.loading-logo-glow {
+  will-change: transform, opacity;
+}
+
+.loading-entry-logo {
+  animation: load-entry-logo 300ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
+}
+
+.loading-entry-name {
+  animation: load-entry-name 300ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
+}
+
+.loading-entry-button {
+  animation: load-entry-button 300ms cubic-bezier(0.22, 1, 0.36, 1) 600ms both;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.loading-entry-button:not(:disabled):hover,
+.loading-entry-button:not(:disabled):focus-visible {
+  transform: scale(1.05);
+}
+
+.loading-entry-button:not(:disabled):active,
+.loading-entry-button.loading-button-pressed {
+  transform: scale(0.97);
+  transition-duration: 70ms;
+}
+
+.loading-logo-glow {
+  animation:
+    load-glow-entrance 300ms ease 60ms both,
+    load-logo-breathe 3.6s ease-in-out 360ms infinite;
+}
+
 /* Keep the entry screen's animated layers isolated from the rest of the page.
    This prevents particle and scan updates from invalidating the full layout. */
 .loading-transform-layer {
@@ -364,6 +426,19 @@ html.custom-cursor-active * {
 @media (prefers-reduced-motion: reduce) {
   .loading-transform-layer {
     animation: none !important;
+  }
+
+  .loading-entry-logo,
+  .loading-entry-name,
+  .loading-entry-button,
+  .loading-logo-glow {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+
+  .loading-entry-button {
+    transition: none;
   }
 }
 

@@ -83,7 +83,6 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
   const glowRef      = useRef<HTMLDivElement>(null);
   const glowRingRef  = useRef<HTMLDivElement>(null);
   const logoWrapRef  = useRef<HTMLDivElement>(null);
-  const logoImgRef   = useRef<HTMLImageElement>(null);
 
   const atmoRef  = useRef<HTMLDivElement>(null);
   const dustRef  = useRef<HTMLDivElement>(null);
@@ -141,15 +140,10 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
       gsap.set(ring3Ref.current, { opacity: 0, scale: 0.3, rotationX: 55, rotation: 0 });
       gsap.set(ring4Ref.current, { opacity: 0, scale: 0.3, rotationX: 68, rotation: 0 });
 
-      gsap.set(glowRef.current,     { opacity: 0, scale: 0.4 });
       gsap.set(glowRingRef.current, { opacity: 0, scale: 0.6 });
-      gsap.set(logoWrapRef.current, { opacity: 0, scale: 0.5, filter: "blur(20px)" });
 
       gsap.set(atmoRef.current,  { opacity: 0 });
       gsap.set(dustRef.current,  { opacity: 0 });
-
-      gsap.set(lettersRef.current.filter(Boolean), { opacity: 0, y: 22 });
-      gsap.set(buttonRef.current, { opacity: 0, y: 18, scale: 0.95 });
 
       gsap.set(pulse1Ref.current,  { opacity: 0, scale: 0.6 });
       gsap.set(pulse2Ref.current,  { opacity: 0, scale: 0.4 });
@@ -168,6 +162,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
           glowRef.current,
           glowRingRef.current,
           logoWrapRef.current,
+          glowRef.current,
           atmoRef.current,
           dustRef.current,
           lettersRef.current.filter(Boolean),
@@ -197,27 +192,14 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
       tl.to(ring2Ref.current, { opacity: 1, scale: 1, duration: 0.65, ease: "power4.out" }, 0.5);
       tl.to(ring1Ref.current, { opacity: 1, scale: 1, duration: 0.6,  ease: "power4.out" }, 0.65);
 
-      // Phase 3: logo assembles
-      tl.to(glowRef.current,     { opacity: 1, scale: 1, duration: 0.85 }, 0.72);
-      tl.to(logoWrapRef.current, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.85, ease: "power4.out" }, 0.78);
-      tl.to(glowRingRef.current, { opacity: 1, scale: 1, duration: 0.7 }, 1.05);
-      tl.to(logoImgRef.current,  {
-        filter: "drop-shadow(0 0 22px rgba(255,31,31,0.85)) drop-shadow(0 0 55px rgba(255,31,31,0.42))",
-        duration: 0.9,
-      }, 1.05);
+      // Phase 3: the logo, name, and button entrance is CSS-driven so all
+      // three states stay on the compositor and do not compete with GSAP.
+      tl.to(glowRingRef.current, { opacity: 1, scale: 1, duration: 0.45 }, 0.38);
 
       // Phase 4: atmosphere
-      tl.to(atmoRef.current, { opacity: 1, duration: 0.55 }, 1.1);
-      tl.to(dustRef.current, { opacity: 1, duration: 0.85 }, 1.2);
-
-      // Phase 5: name reveals letter by letter
-      tl.to(lettersRef.current.filter(Boolean), {
-        opacity: 1, y: 0, duration: 0.6, stagger: 0.042, ease: "power3.out",
-      }, 2.0);
-
-      // Phase 6: ENTER TRENEX button slides up
-      tl.to(buttonRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.72, ease: "back.out(1.5)" }, 3.05);
-      tl.call(() => setPhase("ready"), [], 3.05);
+      tl.to(atmoRef.current, { opacity: 1, duration: 0.35 }, 0.72);
+      tl.to(dustRef.current, { opacity: 1, duration: 0.45 }, 0.78);
+      tl.call(() => setPhase("ready"), [], 0.96);
     }, containerRef);
 
     return () => ctx.revert();
@@ -227,13 +209,14 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
   const handleEnter = useCallback(() => {
     if (phase !== "ready") return;
     setPhase("entering");
+    buttonRef.current?.classList.add("loading-button-pressed");
 
     if (animationProfile.reducedMotion) {
       onEnter();
       return;
     }
 
-    gsap.context(() => {
+    window.setTimeout(() => gsap.context(() => {
       const tl = gsap.timeline({ onComplete: onEnter });
 
       // 1 — button dissolves immediately
@@ -259,7 +242,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
 
       // 6 — a short curtain closes before the main site mounts on the next rAF
       tl.to(overlayRef.current, { opacity: 1, duration: 0.24, ease: "power1.in" }, 0.26);
-    }, containerRef);
+    }, containerRef), 70);
   }, [animationProfile.reducedMotion, onEnter, phase]);
 
   /* ─── JSX ──────────────────────────────────────────────── */
@@ -363,7 +346,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
         <div className="relative mb-8 flex items-center justify-center">
 
           {/* ambient glow behind logo */}
-          <div ref={glowRef} className="absolute" style={{
+          <div ref={glowRef} className="loading-logo-glow absolute" style={{
             width: 220, height: 220, borderRadius: "50%",
             background: "radial-gradient(circle, rgba(255,31,31,0.5), transparent 68%)",
             filter: "blur(12px)",
@@ -392,9 +375,8 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
           }} />
 
           {/* logo mark */}
-          <div ref={logoWrapRef} className="brand-asset relative z-10 flex items-center justify-center">
+          <div ref={logoWrapRef} className="loading-entry-logo brand-asset relative z-10 flex items-center justify-center">
             <img
-              ref={logoImgRef}
               src={logoUrl}
               alt="Trenex Agency"
               className="relative h-48 w-48 object-contain sm:h-60 sm:w-60 md:h-64 md:w-64"
@@ -407,7 +389,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
         </div>
 
         {/* TRENEX AGENCY letter-by-letter */}
-        <h1 className="mb-11 flex flex-wrap items-center justify-center text-2xl font-semibold uppercase tracking-[0.35em] text-white sm:text-3xl md:text-4xl">
+        <h1 className="loading-entry-name mb-11 flex flex-wrap items-center justify-center text-2xl font-semibold uppercase tracking-[0.35em] text-white sm:text-3xl md:text-4xl">
           {nameLetters.map((letter, i) => (
             <span
               key={i}
@@ -426,8 +408,7 @@ export function LoadingScreen({ onEnter }: LoadingScreenProps) {
           onClick={handleEnter}
           disabled={phase !== "ready"}
           aria-label="Enter Trenex Agency"
-          className="group relative overflow-hidden px-11 py-[14px] font-mono text-sm uppercase tracking-[0.32em]"
-          style={{ opacity: 0 }}
+          className="loading-entry-button group relative overflow-hidden px-11 py-[14px] font-mono text-sm uppercase tracking-[0.32em]"
         >
           {/* main border */}
           <span className="pointer-events-none absolute inset-0 transition-all duration-400 border border-[#FF1F1F]/55 group-hover:border-[#FF1F1F] group-hover:shadow-[0_0_28px_rgba(255,31,31,0.38),0_0_55px_rgba(255,31,31,0.12)_inset]" />
