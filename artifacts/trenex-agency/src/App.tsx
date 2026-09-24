@@ -45,9 +45,12 @@ function Home() {
   const timers  = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   /* Cancel any pending rAF / timers if the component ever unmounts */
-  useEffect(() => () => {
-    cancelAnimationFrame(rafRef.current);
-    timers.current.forEach(clearTimeout);
+  useEffect(() => {
+    document.title = "Trenex Agency";
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      timers.current.forEach(clearTimeout);
+    };
   }, []);
 
   const handleEnter = useCallback(() => {
