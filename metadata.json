@@ -1,0 +1,7 @@
+{
+  "name": "Trenex Agency",
+  "description": "Trenex Agency is a premium creative digital agency specializing in graphic design, video editing, and web development. We craft bold brand identities, cinematic content, and high-performance digital experiences.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

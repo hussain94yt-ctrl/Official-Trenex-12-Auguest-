@@ -5,8 +5,7 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin";
 
-const rawPort = process.env.PORT || "3000";
-const port = Number(rawPort);
+const port = 3000;
 const basePath = process.env.BASE_PATH || "/";
 
 export default defineConfig({

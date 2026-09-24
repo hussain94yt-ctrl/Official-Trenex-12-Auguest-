@@ -6,8 +6,7 @@ import fs from "fs";
 import { execFileSync } from "child_process";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-const rawPort = process.env.PORT || "3000";
-const port = Number(rawPort);
+const port = 3000;
 const basePath = process.env.BASE_PATH || "/";
 
 /* ══════════════════════════════════════════════════════
