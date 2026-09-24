@@ -13,6 +13,7 @@ const ROTATE_RANGE = 10;
 
 export function ServiceCard({ service, icon, delay }: ServiceCardProps) {
   const cardRef = useRef<HTMLDivElement & HTMLAnchorElement>(null);
+  const isThirdCard = service.index === "03";
 
   // Every service card is a real anchor element pointing at service.href,
   // opened in a new tab so the homepage stays put — this makes the ENTIRE
@@ -113,19 +114,36 @@ export function ServiceCard({ service, icon, delay }: ServiceCardProps) {
             {icon}
           </div>
 
-          <h3 className="mb-3 text-2xl font-semibold leading-tight tracking-tight text-white sm:mb-4 sm:text-3xl md:text-4xl">
+          <h3
+            className={`mb-3 font-semibold leading-tight tracking-tight text-white ${
+              isThirdCard
+                ? "text-xl sm:text-2xl md:text-[1.75rem]"
+                : "text-2xl sm:mb-4 sm:text-3xl md:text-4xl"
+            }`}
+          >
             {service.title}
           </h3>
-          <p className="max-w-xs text-sm leading-relaxed text-white/55 md:text-base md:leading-[1.65]">
+          <p
+            className={`max-w-xs text-sm leading-relaxed text-white/55 ${
+              isThirdCard ? "md:text-[0.92rem] md:leading-normal" : "md:text-base md:leading-[1.65]"
+            }`}
+          >
             {service.description}
           </p>
         </div>
 
-        <div style={{ transform: "translateZ(30px)" }} className="relative mt-10 flex flex-wrap gap-2">
+        <div
+          style={{ transform: "translateZ(30px)" }}
+          className={`relative flex flex-wrap gap-2 ${isThirdCard ? "mt-8 sm:mt-8" : "mt-10"}`}
+        >
           {service.capabilities.map((capability) => (
             <span
               key={capability}
-              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.15em] text-white/40 transition-colors duration-500 group-hover:border-[#FF1F1F]/30 group-hover:text-white/70"
+              className={`rounded-full border border-white/10 bg-white/[0.03] font-mono uppercase transition-colors duration-500 group-hover:border-[#FF1F1F]/30 group-hover:text-white/70 ${
+                isThirdCard
+                  ? "px-2.5 py-1 text-[0.62rem] tracking-[0.12em] sm:px-3 sm:py-1.5 sm:text-[0.65rem] sm:tracking-[0.15em]"
+                  : "px-3 py-1.5 text-[0.65rem] tracking-[0.15em]"
+              } text-white/40`}
             >
               {capability}
             </span>

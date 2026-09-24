@@ -35,19 +35,19 @@ const PARTICLES = [
 /* cx/cy are SVG viewBox (0→100) coords used for the connecting line endpoint */
 const CARDS = [
   {
-    label: "Graphic Design",
+    label: "Development",
     pos: { top: "4%", left: "0%" },
     cx: 13, cy: 8,
   },
   {
-    label: "Video Editing",
+    label: "Creative",
     pos: { top: "40%", right: "0%" },
     cx: 88, cy: 44,
   },
   {
-    label: "Web Dev",
+    label: "Digital Growth",
     pos: { bottom: "4%", left: "3%" },
-    cx: 15, cy: 92,
+    cx: 18, cy: 92,
   },
 ] as const;
 

@@ -754,19 +754,19 @@ html.custom-cursor-active * {
     }
 
     /* Push each card slightly outside the container so it clears the T */
-    .hv-card-0 {          /* Graphic Design — top-left  */
+    .hv-card-0 {          /* Development   — top-left  */
       top:    -8% !important;
       left:    5% !important;
       right:  auto !important;
       bottom: auto !important;
     }
-    .hv-card-1 {          /* Video Editing  — right-mid */
+    .hv-card-1 {          /* Creative      — right-mid */
       top:   36% !important;
       right:  -5% !important;
       left:  auto !important;
       bottom: auto !important;
     }
-    .hv-card-2 {          /* Web Dev        — bottom-left */
+    .hv-card-2 {          /* Digital Growth — bottom-left */
       bottom: -8% !important;
       left:    5% !important;
       right:  auto !important;

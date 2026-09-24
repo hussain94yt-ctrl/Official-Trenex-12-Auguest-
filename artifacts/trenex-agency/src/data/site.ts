@@ -114,11 +114,11 @@ export const services: Service[] = [
   },
   {
     index: "03",
-    title: "Web Development",
+    title: "Web, App & Software Development",
     tagline: "Digital Engineering",
     description:
-      "Modern high-performance websites engineered for speed, user experience, lead generation, and business growth.",
-    capabilities: ["Web Design", "Performance", "3D Experiences"],
+      "Scalable digital solutions built for performance, usability, and business growth.",
+    capabilities: ["Web Development", "App Development", "Software Development"],
     /** Opens in a new tab (see ServiceCard.tsx) — the homepage stays open in the original tab. */
     href: "/web-development",
   },

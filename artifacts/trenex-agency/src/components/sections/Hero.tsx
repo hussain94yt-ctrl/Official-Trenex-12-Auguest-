@@ -110,32 +110,37 @@ export function Hero() {
           {/* Service lines */}
           <motion.div
             {...fadeUp(0.36)}
-            className="mb-7 flex flex-col gap-1"
+            className="mb-8 flex flex-col gap-2.5 sm:mb-9 sm:gap-2"
           >
-            {["Graphic Design", "Video Editing", "Web Development"].map((s, i) => (
-              <div key={s} className="flex items-center gap-3 justify-center lg:justify-start">
-                <span
-                  className="inline-block h-px w-5 bg-[#FF1F1F]"
-                  style={{ opacity: 1 - i * 0.2 }}
-                />
-                <span className="text-sm font-medium uppercase tracking-[0.22em] text-white/70 sm:text-[0.82rem]">
-                  {s}
-                </span>
+            {[
+              { title: "Development", sub: "Software • App • Web" },
+              { title: "Creative", sub: "Video • Graphic • Content" },
+              { title: "Digital Growth", sub: "Social Media • Digital Marketing" },
+            ].map((group, i) => (
+              <div
+                key={group.title}
+                className="flex flex-col items-center justify-center gap-0.5 sm:flex-row sm:items-baseline sm:justify-start sm:gap-2.5 lg:justify-start"
+              >
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <span
+                    className="inline-block h-px w-4 sm:w-5 bg-[#FF1F1F]"
+                    style={{ opacity: 1 - i * 0.2 }}
+                  />
+                  <span className="text-[0.78rem] sm:text-[0.82rem] font-bold uppercase tracking-[0.22em] text-white/90">
+                    {group.title}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[0.66rem] sm:text-[0.72rem] tracking-[0.12em] text-white/45">
+                  <span className="hidden sm:inline text-white/20 text-[0.55rem]">•</span>
+                  <span>{group.sub}</span>
+                </div>
               </div>
             ))}
           </motion.div>
 
-          {/* Description */}
-          <motion.p
-            {...fadeUp(0.48)}
-            className="mb-10 max-w-sm text-[0.85rem] leading-relaxed text-white/38 sm:text-sm"
-          >
-            We help brands grow through design, content and modern web experiences.
-          </motion.p>
-
           {/* CTA buttons */}
           <motion.div
-            {...fadeUp(0.6)}
+            {...fadeUp(0.48)}
             className="flex flex-col items-center gap-3 sm:flex-row lg:items-start sm:gap-4"
           >
             <a
